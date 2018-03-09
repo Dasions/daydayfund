@@ -75,7 +75,7 @@ public class FundExcut {
 
 		Gson gson = new Gson();
 		DateTimeFormatter format = DateTimeFormat.forPattern("yyyy-MM-dd");
-		String partThreeQueue = DateTime.now().toString(format) + "-partThreeQueue";
+		String partThreeQueue = "2018-03-09-partThreeQueue";//DateTime.now().toString(format) + "-partThreeQueue";
 		try (Jedis jedis = JedisTool.getInstance().getResource()) {
 			int len = jedis.llen(partThreeQueue).intValue();
 			List<String> jsonStr = jedis.lrange(partThreeQueue, 0, len - 1);
@@ -298,7 +298,7 @@ public class FundExcut {
 		printList(funds, funds.size() - count, funds.size(), SortTypeEnum.appraisement_DESC.getCode());
 	}
 
-	private static String printAppraisement(List<FundBean> funds) {
+	public static Map<String, String> printAppraisement(List<FundBean> funds) {
 		int asc = 0;
 		int desc = 0;
 		for (FundBean fund : funds) {
@@ -315,9 +315,13 @@ public class FundExcut {
 			}
 		}
 
+		Map<String, String> dataMap = new HashMap<String, String>();
+		dataMap.put("asc", asc + "");
+		dataMap.put("desc", desc + "");
+		dataMap.put("count", funds.size() + "");
 		String content = "预估上涨数量: " + asc + "  预估下跌数量: " + desc + " 总: " + funds.size();
 		System.out.println(content);
-		return content;
+		return dataMap;
 	}
 
 	/**
@@ -327,7 +331,7 @@ public class FundExcut {
 	 *            >0上涨 <0下降
 	 * @param sortType
 	 */
-	private static String diffCount(List<FundBean> funds, int type, int sortType) {
+	public static String diffCount(List<FundBean> funds, int type, int sortType) {
 		int count = 0;
 		for (FundBean fund : funds) {
 			try {
@@ -378,7 +382,7 @@ public class FundExcut {
 			}
 		}
 		System.out.println(count + " / " + funds.size());
-		return count + " / " + funds.size();
+		return count + "";
 	}
 
 	private static void printList(List<FundBean> funds, int from, int to, int sortType) {

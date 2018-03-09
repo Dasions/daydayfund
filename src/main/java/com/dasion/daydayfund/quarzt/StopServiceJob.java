@@ -13,6 +13,7 @@ import org.quartz.JobExecutionException;
 import com.dasion.daydayfund.constant.RedisConstant;
 import com.dasion.daydayfund.exc.FundExcut;
 import com.dasion.daydayfund.fund.FundBean;
+import com.dasion.daydayfund.mail.MailTemplate;
 import com.dasion.daydayfund.tool.JedisTool;
 import com.google.gson.Gson;
 
@@ -44,7 +45,7 @@ public class StopServiceJob implements Job {
 							gongYinFunds.add(gson.fromJson(json, FundBean.class));
 						}
 
-						FundExcut.sendMail(gongYinFunds, 10);
+						MailTemplate.megerDataAndTemplate(gongYinFunds, null);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
