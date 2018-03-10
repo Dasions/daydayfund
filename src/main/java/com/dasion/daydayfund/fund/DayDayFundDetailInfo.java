@@ -82,6 +82,10 @@ public class DayDayFundDetailInfo implements Runnable {
 						.substring(14, 24));
 			}
 
+			if(fundDataDoc.getElementById("gz_gztime") != null){
+				fund.setAppraisementTime(fundDataDoc.getElementById("gz_gztime").text());
+			}
+			
 			if (date != null && !date.equals(fund.getDate())) {
 				return;
 			}

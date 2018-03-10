@@ -111,7 +111,20 @@ public class FundBean implements Serializable{
 	 */
 	private String appraisement;
 	
+	/**
+	 * 估值更新时间
+	 */
+	private String appraisementTime;
 	
+	
+	public String getAppraisementTime() {
+		return appraisementTime;
+	}
+
+	public void setAppraisementTime(String appraisementTime) {
+		this.appraisementTime = appraisementTime;
+	}
+
 	public String getAppraisement() {
 		return appraisement;
 	}

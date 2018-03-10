@@ -7,6 +7,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import com.dasion.daydayfund.constant.ConfigConstant;
+import com.sun.mail.util.MailSSLSocketFactory;
 
 import java.util.Date;
 import java.util.Properties;
@@ -16,8 +17,12 @@ public class MailTool {
 			String mailContent) throws Exception {
 		Properties props = new Properties(); // 可以加载一个配置文件
 		// 使用smtp：简单邮件传输协议
-		props.put("mail.smtp.host", "smtp.163.com");// 存储发送邮件服务器的信息
+		props.put("mail.smtp.host", "smtp.qq.com");// 存储发送邮件服务器的信息
 		props.put("mail.smtp.auth", "true");// 同时通过验证
+		MailSSLSocketFactory sf = new MailSSLSocketFactory();
+		sf.setTrustAllHosts(true);
+		props.put("mail.smtp.ssl.enable", "true");
+		props.put("mail.smtp.ssl.socketFactory", sf);
 
 		Session session = Session.getInstance(props);// 根据属性新建一个邮件会话
 		// session.setDebug(true); //有他会打印一些调试信息。
