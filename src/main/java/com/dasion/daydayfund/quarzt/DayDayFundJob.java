@@ -35,11 +35,21 @@ public class DayDayFundJob implements Job {
 	private String url;
 	private String jobType;
 	private AtomicInteger threadNums;
-
+	private int PART_TWO_THREAD = 3;
+	private int PART_THREE_THREAD = 2;
 	public DayDayFundJob() {
 	}
 
 	public void execute(JobExecutionContext context) throws JobExecutionException {
+		try (Jedis jedis = JedisTool.getInstance().getResource()) {
+			if (jedis.exists("part_two_threadnum")) {
+				PART_TWO_THREAD = Integer.parseInt(jedis.get("part_two_threadnum"));
+			}
+			if (jedis.exists("part_three_threadnum")) {
+				PART_THREE_THREAD = Integer.parseInt(jedis.get("part_three_threadnum"));
+			}
+		}
+
 		try {
 			DateTimeFormatter format = DateTimeFormat.forPattern("yyyy-MM-dd");
 			String nowDate = DateTime.now().toString(format);
@@ -66,16 +76,17 @@ public class DayDayFundJob implements Job {
 
 			if (QuarztConstant.PARTTWO_JOBTYPE.equals(jobType)) {
 				delOldData(this.outputQueueName);
-				executor.execute(
-						new DayDayFundDetailInfo(this.inputQueueName, this.outputQueueName, null, threadNums));
-				executor.execute(
-						new DayDayFundDetailInfo(this.inputQueueName, this.outputQueueName, null, threadNums));
+				for (int i = 0; i < PART_TWO_THREAD; i++) {
+					executor.execute(
+							new DayDayFundDetailInfo(this.inputQueueName, this.outputQueueName, null, threadNums));
+				}
 			}
 
 			if (QuarztConstant.PARTTHREE_JOBTYPE.equals(jobType)) {
 				delOldData(this.outputQueueName);
-				executor.execute(new DayDayFundIncInfo(this.inputQueueName, this.outputQueueName, nowDate, threadNums));
-				executor.execute(new DayDayFundIncInfo(this.inputQueueName, this.outputQueueName, nowDate, threadNums));
+				for (int i = 0; i < PART_THREE_THREAD; i++) {
+					executor.execute(new DayDayFundIncInfo(this.inputQueueName, this.outputQueueName, nowDate, threadNums));
+				}
 			}
 
 		} catch (Exception e) {
