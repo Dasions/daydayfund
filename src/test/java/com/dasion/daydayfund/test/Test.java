@@ -2,6 +2,7 @@ package com.dasion.daydayfund.test;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.quartz.SchedulerException;
 import com.dasion.daydayfund.fund.FundBean;
 import com.dasion.daydayfund.mail.MailTemplate;
 import com.dasion.daydayfund.tool.JedisTool;
@@ -11,9 +12,10 @@ import redis.clients.jedis.Jedis;
 
 public class Test{
 
-	public static void main(String[] args) {
-		test();
+	public static void main(String[] args) throws SchedulerException, InterruptedException {
+
 	}
+	
 
 	public static void test(){
 		List<FundBean> gongYinFunds = new ArrayList<>(1000);

@@ -3,28 +3,26 @@ package com.dasion.daydayfund.exc;
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.quartz.CronScheduleBuilder;
+import org.quartz.CronTrigger;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SchedulerFactory;
 import org.quartz.SimpleTrigger;
-import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 
 import com.dasion.daydayfund.constant.QuarztConstant;
 import com.dasion.daydayfund.constant.RedisConstant;
 import com.dasion.daydayfund.quarzt.DayDayFundJob;
-import com.dasion.daydayfund.quarzt.QuarztSchedukeMonitor;
 import com.dasion.daydayfund.quarzt.SingleSchedulerFactory;
 import com.dasion.daydayfund.quarzt.StopServiceJob;
+import com.dasion.daydayfund.tool.JedisTool;
+
+import redis.clients.jedis.Jedis;
 
 public class QuarztStartServer {
 	public static void main(String[] args) throws SchedulerException {
@@ -40,28 +38,17 @@ public class QuarztStartServer {
 		SimpleTrigger stopServiceTrigger = (SimpleTrigger) TriggerBuilder.newTrigger().startNow()
 				.withSchedule(simpleSchedule().withIntervalInSeconds(10).repeatForever()).build();
 		scheduler.scheduleJob(stopServiceJob, stopServiceTrigger);
+		String excTime = "0 15 11,14,20,22 ? * MON-FRI";
+		try (Jedis jedis = JedisTool.getInstance().getResource()) {
+			excTime = jedis.get("excTime");
+		}
 		//0 15 11,14,20,22 ? * MON-FRI
-		Trigger partOneTrigger = getTrigger("0 15 11,14,20,22 ? * MON-FRI");
+		CronTrigger partOneTrigger = getTrigger(excTime);
 		scheduler.scheduleJob(partOne, partOneTrigger);
-		Trigger partTwoTrigger = getTrigger("0 15 11,14,20,22 ? * MON-FRI");
+		CronTrigger partTwoTrigger = getTrigger(excTime);
 		scheduler.scheduleJob(partTwo, partTwoTrigger);
-		Trigger partThreeTrigger = getTrigger("0 15 11,14,20,22 ? * MON-FRI");
+		CronTrigger partThreeTrigger = getTrigger(excTime);
 		scheduler.scheduleJob(partThree, partThreeTrigger);
-		
-        List<Trigger> triggerList = new ArrayList<>();
-        triggerList.add(partOneTrigger);
-        triggerList.add(partTwoTrigger);
-        triggerList.add(partThreeTrigger);
-		Map<String, List<Trigger>> schedulerConfigMap = new HashMap<>();
-		schedulerConfigMap.put("daydayfundscheduler", triggerList);
-		JobDataMap jobDataMap = new JobDataMap();
-		jobDataMap.put("schedulerConfigMap", schedulerConfigMap);
-		jobDataMap.put("scheduler", scheduler);
-		JobDetail quarztSchedukeMonitorJob = newJob(QuarztSchedukeMonitor.class).setJobData(jobDataMap)
-				.build();
-		SimpleTrigger quarztSchedukeMonitorTrigger = (SimpleTrigger) TriggerBuilder.newTrigger().startNow()
-				.withSchedule(simpleSchedule().withIntervalInSeconds(10).repeatForever()).build();
-		scheduler.scheduleJob(quarztSchedukeMonitorJob, quarztSchedukeMonitorTrigger);
 		
 		// 调度启动
 		scheduler.start();
@@ -99,8 +86,8 @@ public class QuarztStartServer {
 		return partThree;
 	}
 	
-	private static Trigger getTrigger(String schedulerTime) throws SchedulerException{
-        Trigger trigger = TriggerBuilder.newTrigger().startNow()
+	private static CronTrigger getTrigger(String schedulerTime) throws SchedulerException{
+		CronTrigger trigger = TriggerBuilder.newTrigger().startNow()
 				 .withSchedule(CronScheduleBuilder.cronSchedule(schedulerTime)).build();
         return trigger;
 	}
