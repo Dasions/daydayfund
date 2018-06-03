@@ -11,21 +11,30 @@ import java.util.Map.Entry;
 
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.dasion.daydayfund.exc.FundExcut;
+import com.dasion.daydayfund.enums.SortTypeEnum;
 import com.dasion.daydayfund.fund.ComparatorFund;
 import com.dasion.daydayfund.fund.FundBean;
-import com.dasion.daydayfund.fund.SortTypeEnum;
+import com.dasion.daydayfund.tool.FunDataOutFormat;
 import com.dasion.daydayfund.tool.JedisTool;
 import com.dasion.daydayfund.tool.MailTool;
 
 import redis.clients.jedis.Jedis;
 
+@Component
 public class MailTemplate {
-
-	public static String megerDataAndTemplate(List<FundBean> funds, String megerType){
+	@Autowired
+	private JedisTool jedisTool;
+	@Autowired
+	private MailTool mailTool;
+	@Autowired
+	private FunDataOutFormat funDataOutFormat;
+	
+	public String megerDataAndTemplate(List<FundBean> funds, String megerType){
 		Map<String, List<String>> userAndFundsMap = getUserAndFunds();
 		HashSet<String> fundSet = new HashSet<String>();
 		for(Entry<String, List<String>> entry : userAndFundsMap.entrySet()){
@@ -50,7 +59,7 @@ public class MailTemplate {
 					userFundList.add(fund);
 				}
 			}
-			try (Jedis jedis = JedisTool.getInstance().getResource()) {
+			try (Jedis jedis = jedisTool.getJedisTool().getResource()) {
 				//用户自选
 				String tp = jedis.get("fundListTemplate");
 				
@@ -64,7 +73,7 @@ public class MailTemplate {
 		        content = stringWriter.toString();
 
 		        //统计预估
-		        Map<String, String> map = FundExcut.printAppraisement(funds);
+		        Map<String, String> map = funDataOutFormat.printAppraisement(funds);
 		        tp = jedis.get("fundsSumarryTemplate");
 		        ve = new VelocityEngine();
 			    ve.init();
@@ -105,14 +114,14 @@ public class MailTemplate {
 			    ctx.put("title_one", "最近一天下跌个数");
 			    ctx.put("title_two", "最近一天上涨个数");
 			    ctx.put("title_three", "总");
-			    ctx.put("value_one", FundExcut.diffCount(funds, -1, SortTypeEnum.THIS_DAY_DESC.getCode()));
-			    ctx.put("value_two", FundExcut.diffCount(funds, 1, SortTypeEnum.THIS_DAY_DESC.getCode()));
+			    ctx.put("value_one", funDataOutFormat.diffCount(funds, -1, SortTypeEnum.THIS_DAY_DESC.getCode()));
+			    ctx.put("value_two", funDataOutFormat.diffCount(funds, 1, SortTypeEnum.THIS_DAY_DESC.getCode()));
 			    ctx.put("value_three", funds.size());
 		        stringWriter = new StringWriter();
 		        ve.evaluate(ctx, stringWriter, "mystring", tp);
 		        content = content + "</br>" + stringWriter.toString();
 		        
-		        MailTool.sendMailData(content, entry.getKey());
+		        mailTool.sendMailData(content, entry.getKey());
 			}
 			
 		}
@@ -121,9 +130,9 @@ public class MailTemplate {
 		return content;
 	}
 	
-	private static Map<String, List<String>> getUserAndFunds() {
+	private Map<String, List<String>> getUserAndFunds() {
 		HashMap<String, List<String>> userAndFundsMap = new HashMap<>();
-		try (Jedis jedis = JedisTool.getInstance().getResource()) {
+		try (Jedis jedis = jedisTool.getJedisTool().getResource()) {
 			String userAndFundsStr = jedis.get("userAndFunds");
 			JSONArray userAndFunds = JSONArray.parseArray(userAndFundsStr);
 			for (int i = 0; i < userAndFunds.size(); i++) {

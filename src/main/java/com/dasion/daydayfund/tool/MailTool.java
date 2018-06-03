@@ -6,13 +6,20 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.dasion.daydayfund.constant.ConfigConstant;
 import com.sun.mail.util.MailSSLSocketFactory;
 
 import java.util.Date;
 import java.util.Properties;
 
+@Component
 public class MailTool {
+	@Autowired
+	private ConfigConstant configConstant;
+	
 	public static void sendMail(String fromMail, String user, String password, String toMail, String mailTitle,
 			String mailContent) throws Exception {
 		Properties props = new Properties(); // 可以加载一个配置文件
@@ -45,9 +52,9 @@ public class MailTool {
 		transport.close();
 	}
 
-	public static void sendMailData(String content, String reciver) {
+	public void sendMailData(String content, String reciver) {
 		try {
-			sendMail(ConfigConstant.SENDER_MAIL, ConfigConstant.SENDER_MAIL, ConfigConstant.PASSWORD_MAIL, reciver, ConfigConstant.TITLE_MAIL, content);
+			sendMail(configConstant.getSenderMail(), configConstant.getSenderMail(), configConstant.getMailPwd(), reciver, configConstant.getMailTitle(), content);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

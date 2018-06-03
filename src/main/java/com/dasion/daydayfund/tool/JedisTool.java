@@ -1,12 +1,18 @@
 package com.dasion.daydayfund.tool;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.dasion.daydayfund.constant.ConfigConstant;
 
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-public class JedisTool {
+@Component
+public class JedisTool{
 
+	@Autowired
+	private ConfigConstant configConstant;
 	// 可用连接实例的最大数目，默认为8；
 	// 如果赋值为-1，则表示不限制，如果pool已经分配了maxActive个jedis实例，则此时pool的状态为exhausted(耗尽)
 	private static Integer MAX_TOTAL = 1024;
@@ -22,11 +28,10 @@ public class JedisTool {
 
 	private static volatile JedisPool pool;
 
-	private JedisTool() {
-
+	private JedisTool(){
+	
 	}
-
-	public static JedisPool getInstance() {
+	public JedisPool getJedisTool() {
 		if (pool == null) {
 			synchronized (JedisTool.class) {
 				if (pool == null) {
@@ -41,7 +46,7 @@ public class JedisTool {
 					config.setMaxIdle(MAX_IDLE);
 					config.setMaxWaitMillis(MAX_WAIT_MILLIS);
 					config.setTestOnBorrow(TEST_ON_BORROW);
-					pool = new JedisPool(config, ConfigConstant.REDIS_IP, ConfigConstant.REDIS_PORT, TIMEOUT, ConfigConstant.REDIS_PASSWORD);
+					pool = new JedisPool(config, configConstant.getRedisIp(), configConstant.getRedisPort(), TIMEOUT, configConstant.getRedisPwd());
 				}
 			}
 		}

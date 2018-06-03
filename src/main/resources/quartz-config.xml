@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+
+	<bean id="executor"
+		class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+		<property name="corePoolSize" value="10" />
+		<property name="maxPoolSize" value="100" />
+		<property name="queueCapacity" value="500" />
+	</bean>
+	<!-- 业务对象 -->
+	<bean id="excFundCrawlers" class="com.dasion.daydayfund.quarzt.StartFundCrawlersMain" />
+	<bean id="stopCrawlerServiceJob" class="com.dasion.daydayfund.quarzt.StopCrawlerServiceJob" />
+	
+	<!-- 调度业务 -->
+	<bean id="excFundCrawlersJobDetail"
+		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="excFundCrawlers" />
+		<property name="targetMethod" value="execute" />
+	</bean>
+	
+	<bean id="stopCrawlerServiceJobDetail"
+		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="stopCrawlerServiceJob" />
+		<property name="targetMethod" value="execute" />
+	</bean>
+
+	<bean id="excFundCrawlersCronTrigger"
+		class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="excFundCrawlersJobDetail" />
+		<property name="cronExpression" value="0 5 23 * * ?" /><!-- 0 28 12,14,21,23 ? * MON-FRI -->
+	</bean>
+
+    <bean id="stopCrawlerServiceJobTrigger"  class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="stopCrawlerServiceJobDetail" />
+        <property name="cronExpression" value="0/50 * * * * ?" />
+    </bean>
+
+
+	<!-- 设置调度 -->
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+				<ref bean="excFundCrawlersCronTrigger" />
+				<ref bean="stopCrawlerServiceJobTrigger" />
+			</list>
+		</property>
+		<property name="taskExecutor" ref="executor" />
+	</bean>
+</beans>
