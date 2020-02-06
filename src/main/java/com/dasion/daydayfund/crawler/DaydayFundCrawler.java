@@ -62,15 +62,15 @@ public class DaydayFundCrawler {
 		DaydayFundExcStepEnum excStepEnum = DaydayFundExcStepEnum.getEnum(excStep);
 		switch (excStepEnum) {
 		case BASE_INFO:
-			logger.info("获取基本数据");
+			//logger.info("获取基本数据");
 			getFundBaseinfo(tool, baseBean);
 			break;
 		case DETAIL_INFO:
-			logger.info("获取详情数据");
+			//logger.info("获取详情数据");
 			getFunddInfo(tool, baseBean);
 			break;
 		case INC_INFO:
-			logger.info("获取增长率");
+			//logger.info("获取增长率");
 			getFundIncInfo(tool, baseBean);
 			break;
 		default:
@@ -117,6 +117,7 @@ public class DaydayFundCrawler {
 				try (Jedis jedis = jedisTool.getJedisTool().getResource()) {
 					Gson gson = new Gson();
 					jedis.lpush(baseBean.getToQueue(), gson.toJson(baseBean));
+					jedis.incr(RedisConstant.COUNT_BASE_INFO);
 				}
 			}
 		}
@@ -201,6 +202,7 @@ public class DaydayFundCrawler {
 				sourceBaseBean.setToQueue(sourceBaseBean.getFromQueue());
 				sourceBaseBean.setExcStep(DaydayFundExcStepEnum.INC_INFO.getCode());
 				jedis.lpush(sourceBaseBean.getToQueue(), gson.toJson(sourceBaseBean));
+				jedis.incr(RedisConstant.COUNT_DETAIL_INFO);
 			}
 		}
 	}
@@ -233,6 +235,7 @@ public class DaydayFundCrawler {
 			try (Jedis jedis = jedisTool.getJedisTool().getResource()) {
 				String resultQueue = RedisConstant.FINAL_DATA_QUEUE + sourceBaseBean.getFromQueue().split("_")[1];
 				jedis.lpush(resultQueue, gson.toJson(fund));
+				jedis.incr(RedisConstant.COUNT_INC_INFO);
 			}
 		}
 	}

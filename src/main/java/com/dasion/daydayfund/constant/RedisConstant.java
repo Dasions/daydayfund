@@ -13,4 +13,8 @@ public class RedisConstant {
 	 * 最终的数据
 	 */
 	public static final String FINAL_DATA_QUEUE = "finalDataQueue_";
+
+	public static final String COUNT_BASE_INFO = "COUNT_BASE_INFO";
+	public static final String COUNT_DETAIL_INFO = "COUNT_DETAIL_INFO";
+	public static final String COUNT_INC_INFO = "COUNT_INC_INFO";
 }

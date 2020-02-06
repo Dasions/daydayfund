@@ -33,7 +33,7 @@
 	<bean id="excFundCrawlersCronTrigger"
 		class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
 		<property name="jobDetail" ref="excFundCrawlersJobDetail" />
-		<property name="cronExpression" value="0 5 23 * * ?" /><!-- 0 28 12,14,21,23 ? * MON-FRI -->
+		<property name="cronExpression" value="0 57 20 * * ?" /><!-- 0 28 12,14,21,23 ? * MON-FRI -->
 	</bean>
 
     <bean id="stopCrawlerServiceJobTrigger"  class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">

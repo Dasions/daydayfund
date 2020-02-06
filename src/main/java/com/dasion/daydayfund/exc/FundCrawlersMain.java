@@ -22,7 +22,6 @@ import redis.clients.jedis.Jedis;
 @Component
 public class FundCrawlersMain implements Runnable {
 	private static final Logger logger = LoggerFactory.getLogger(FundCrawlersMain.class);
-	private static AtomicInteger threadNums = new AtomicInteger(0);
 
 	@Override
 	public void run() {
@@ -32,14 +31,6 @@ public class FundCrawlersMain implements Runnable {
 		DaydayFundCrawler daydayFundCrawler = BeanContext.getBean(DaydayFundCrawler.class);
 		String sourceQueueName = RedisConstant.SOURCE_DATA_QUEUE + currentyDate;
 		while (true) {
-			if (threadNums.get() > 15) {
-				try {
-					TimeUnit.MILLISECONDS.sleep(1000);
-				} catch (InterruptedException e) {
-					logger.warn("爬虫统一执行接口执行睡眠等待发生异常：", e);
-				}
-				continue;
-			}
 			BaseBean baseBean = null;
 			// 根据统一开关决定是否执行 爬取动作
 			try (Jedis jedis = jedisTool.getJedisTool().getResource()) {
@@ -61,11 +52,8 @@ public class FundCrawlersMain implements Runnable {
 			try {
 				switch (baseBean.getCrawlerType()) {
 				case "daydayfund":
-					threadNums.getAndIncrement();
 					daydayFundCrawler.excRoute(baseBean, getHttpClient());
-					threadNums.decrementAndGet();
 					break;
-
 				default:
 					logger.error("未定义爬虫类型： " + baseBean.getCrawlerType());
 					break;

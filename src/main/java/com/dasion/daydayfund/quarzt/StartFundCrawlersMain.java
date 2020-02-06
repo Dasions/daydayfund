@@ -37,37 +37,55 @@ public class StartFundCrawlersMain{
 	
 
 	public void execute(){
+		String semaphore = null;
 		try {
-			DateTimeFormatter format = DateTimeFormat.forPattern("yyyy-MM-dd");
-			String nowDate = DateTime.now().toString(format);
-			List<String> fndCompanys = getFundCompanysByHttp();
-			String sourceQueueName = RedisConstant.SOURCE_DATA_QUEUE + nowDate;
-			String finalQueueName = RedisConstant.FINAL_DATA_QUEUE + nowDate;
-			Gson gson = new Gson();
-			ExecutorService executor = ExecutorServiceThreadPool.getExecutor();
+			//获取SEMAPHORE_KEY的值，如果为RUN，则说明当前服务为从节点，不需要获取基金列表和
+			//设置SEMAPHORE_KEY为run， 直接往线程池添加FundCrawlersMain对象执行爬取任务即可
+			try (Jedis jedis = jedisTool.getJedisTool().getResource()) {
+				semaphore = jedis.get(RedisConstant.SEMAPHORE_KEY);
+			}
+
+            if(RedisConstant.SEMAPHORE_KEY_WAIT.equals(semaphore)){
+				DateTimeFormatter format = DateTimeFormat.forPattern("yyyy-MM-dd");
+				String nowDate = DateTime.now().toString(format);
+				List<String> fndCompanys = getFundCompanysByHttp();
+				String sourceQueueName = RedisConstant.SOURCE_DATA_QUEUE + nowDate;
+				String finalQueueName = RedisConstant.FINAL_DATA_QUEUE + nowDate;
+				Gson gson = new Gson();
 				delOldData(sourceQueueName);
 				delOldData(finalQueueName);
-				try (Jedis jedis = jedisTool.getJedisTool().getResource()) {
-				//开启统一开关
-				logger.info("------开启统一开关------状态: " + RedisConstant.SEMAPHORE_KEY_RUN);
-				jedis.set(RedisConstant.SEMAPHORE_KEY, RedisConstant.SEMAPHORE_KEY_RUN);
-				for (String fundCompany : fndCompanys) {
-						BaseBean baseBean = new BaseBean("daydayfund", DaydayFundExcStepEnum.BASE_INFO.getCode()
-								, FUND_COMPANY_URL + fundCompany
-								, sourceQueueName, sourceQueueName);
-						jedis.lpush(sourceQueueName, gson.toJson(baseBean));
-					}
-				}
-				
-				int i = 0;
-				while(i < 10){
-					i++;
-					executor.execute(new FundCrawlersMain());
-				}
+
+				initFundListAndSetSemaphoreKeyToRun( fndCompanys, sourceQueueName, gson );
+			}
+			ExecutorService executor = ExecutorServiceThreadPool.getExecutor();
+			int i = 0;
+			//这里为10，表示每个爬虫服务只会有10个线程进行数据的爬取，这个数量根据机器性能可以自己做调整
+			while(i < 10){
+				i++;
+				executor.execute(new FundCrawlersMain());
+			}
 
 		} catch (Exception e) {
 			logger.error("统一入口发生异常： " , e);
 		}
+	}
+
+	private void initFundListAndSetSemaphoreKeyToRun(List<String> fndCompanys, String sourceQueueName, Gson gson) {
+		try (Jedis jedis = jedisTool.getJedisTool().getResource()) {
+        //开启统一开关
+        logger.info("------开启统一开关------状态: " + RedisConstant.SEMAPHORE_KEY_RUN);
+        jedis.set(RedisConstant.SEMAPHORE_KEY, RedisConstant.SEMAPHORE_KEY_RUN);
+	    jedis.set(RedisConstant.COUNT_BASE_INFO, "0");
+	    jedis.set(RedisConstant.COUNT_DETAIL_INFO, "0");
+		jedis.set(RedisConstant.COUNT_INC_INFO, "0");
+        for (String fundCompany : fndCompanys) {
+                BaseBean baseBean = new BaseBean("daydayfund", DaydayFundExcStepEnum.BASE_INFO.getCode()
+                        , FUND_COMPANY_URL + fundCompany
+                        , sourceQueueName, sourceQueueName);
+                jedis.lpush(sourceQueueName, gson.toJson(baseBean));
+            }
+        }
+
 	}
 
 	private void delOldData(String queueName) {
