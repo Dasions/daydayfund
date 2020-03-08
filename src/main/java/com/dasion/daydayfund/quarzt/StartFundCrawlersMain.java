@@ -1,10 +1,13 @@
 package com.dasion.daydayfund.quarzt;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
+import com.dasion.daydayfund.constant.ConfigConstant;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -34,7 +37,8 @@ public class StartFundCrawlersMain{
 	@Autowired
 	private JedisTool jedisTool;
 	private String FUND_COMPANY_URL ="http://fund.eastmoney.com/Company/home/KFSFundRank?gsid=";
-	
+	@Autowired
+	private ConfigConstant configConstant;
 
 	public void execute(){
 		String semaphore = null;
@@ -56,6 +60,18 @@ public class StartFundCrawlersMain{
 				delOldData(finalQueueName);
 
 				initFundListAndSetSemaphoreKeyToRun( fndCompanys, sourceQueueName, gson );
+			}
+			String ip = "";
+			try {
+				ip = InetAddress.getLocalHost().getHostAddress();
+			} catch (Exception e) {
+				logger.error("获取机器实例IP发生异常，{}", e);
+			}
+			try (Jedis jedis = jedisTool.getJedisTool().getResource()) {
+				//设置默认并发数
+				jedis.set( RedisConstant.MAX_THREAD_NUM, configConstant.getMaxThreadNum() + "" );
+				//设置当前实例最大并发数
+				jedis.set( ip + "_" + RedisConstant.MAX_THREAD_NUM, configConstant.getMaxThreadNum() + "" );
 			}
 			ExecutorService executor = ExecutorServiceThreadPool.getExecutor();
 			int i = 0;

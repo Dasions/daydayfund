@@ -26,6 +26,16 @@ public class ConfigConstant {
 	private String reciverMail;
 	@Value("${mailTitle}")
 	private String mailTitle;
+	@Value("${maxThreadNum}")
+	private int maxThreadNum;
+
+	public int getMaxThreadNum() {
+		return maxThreadNum;
+	}
+
+	public void setMaxThreadNum(int maxThreadNum) {
+		this.maxThreadNum = maxThreadNum;
+	}
 
 	public String getRedisIp() {
 		return redisIp;
