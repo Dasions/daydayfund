@@ -31,3 +31,7 @@
 4.多个线程使用同个HttpClient进行请求，减少HttpClient实例的创建数量，减少内存消耗；  
 设置HttpClient连接池配置，使其支持更大的并发请求操作  
 5.新增errorDataQueue队列，存放爬取过程中发生异常的基金信息  
+
+
+#如果你想一键三连，可以通过以下方式
+![image](https://github.com/Dasions/daydayfund/blob/master/web/pic/mypic.jpg)
