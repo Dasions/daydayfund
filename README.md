@@ -33,5 +33,5 @@
 5.新增errorDataQueue队列，存放爬取过程中发生异常的基金信息  
 
 
-#如果你想一键三连，可以通过以下方式
-![image](https://github.com/Dasions/daydayfund/blob/master/web/pic/mypic.jpg)
+#如果你想一键三连，可以通过以下方式  
+![https://github.com/Dasions/daydayfund/blob/master/web/pic/mypic.jpg](https://github.com/Dasions/daydayfund/blob/master/web/pic/mypic.jpg)
