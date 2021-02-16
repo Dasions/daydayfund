@@ -89,7 +89,7 @@ public class DaydayFundCrawler {
 	public void getFundBaseinfo(HttpclientTool tool, BaseBean sourceBaseBean) throws IOException, InterruptedException {
 		tool.setUrl(sourceBaseBean.getRequestUrl());
 		String fundListHtml = tool.getContentByGet();
-		tool.getClient().close();
+		//tool.getClient().close();
 		Document fundListDoc = Jsoup.parse(fundListHtml);
 		Elements fundListTable = fundListDoc.getElementsByClass("ttjj-table ttjj-table-hover common-sort-table");
 
@@ -195,7 +195,7 @@ public class DaydayFundCrawler {
 								UTF8);
 						shares = shares + tag.trim() + ",";
 					}
-					jedis.hset("shares", fund.getFundCode(), shares);
+					jedis.hset(RedisConstant.SHARES_DATA, fund.getFundCode(), shares);
 				}
 
 				// 后面还需要爬取数据，仍然放入sourceDataQueue_+日期 队列

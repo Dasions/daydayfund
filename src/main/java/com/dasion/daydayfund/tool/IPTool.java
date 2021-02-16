@@ -1,6 +1,7 @@
 package com.dasion.daydayfund.tool;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -151,6 +152,16 @@ public class IPTool {
 		}
 
 		return ips;
+	}
+
+	public static String getLocalIP() {
+		String ip = "";
+		try {
+			ip = InetAddress.getLocalHost().getHostAddress();
+		} catch (Exception e) {
+			logger.error("获取机器实例IP发生异常，{}", e);
+		}
+		return ip;
 	}
 
 }

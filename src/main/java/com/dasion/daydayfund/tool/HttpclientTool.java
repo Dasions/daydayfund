@@ -39,7 +39,8 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
-
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import com.google.gson.Gson;
 
 /**
@@ -75,8 +76,8 @@ public class HttpclientTool {
 	/**
 	 * 默认配置
 	 */
-	private RequestConfig defaultRequestConfig = RequestConfig.custom().setSocketTimeout(50).setConnectTimeout(50)
-			.setConnectionRequestTimeout(50)
+	private RequestConfig defaultRequestConfig = RequestConfig.custom().setSocketTimeout(5000).setConnectTimeout(5000)
+			.setConnectionRequestTimeout(5000)
 			.build();
 
 	/**
@@ -110,9 +111,13 @@ public class HttpclientTool {
 			setCookieStore(cookieStore);
 		}
 
+		PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+		connectionManager.setMaxTotal(200);
+		connectionManager.setDefaultMaxPerRoute(20);
 		this.client = HttpClients.custom()
 				.setDefaultRequestConfig((requestConfig == null) ? this.defaultRequestConfig : requestConfig)
-				.setDefaultCookieStore(getCookieStore()).build();
+				.setDefaultCookieStore(getCookieStore())
+				.setConnectionManager(connectionManager).build();
 	}
 
 	public void createSSLClientByHttpClients(RequestConfig requestConfig, CookieStore cookieStore)

@@ -5,6 +5,9 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import com.dasion.daydayfund.constant.ConfigConstant;
+import com.dasion.daydayfund.tool.IPTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.joda.time.DateTime;
@@ -28,11 +31,12 @@ public class StopCrawlerServiceJob{
 	@Autowired
 	private JedisTool jedisTool;
 	@Autowired
-	MailTemplate mailTemplate;
+	private MailTemplate mailTemplate;
+	@Autowired
+	private StartFundCrawlersMain startFundCrawlersMain;
 
 	public void execute() throws JobExecutionException {
-		DateTimeFormatter format = DateTimeFormat.forPattern("yyyy-MM-dd");
-		String nowDate = DateTime.now().toString(format);
+		String nowDate = DateTime.now().toString(DateTimeFormat.forPattern("yyyy-MM-dd"));
 		try (Jedis jedis = jedisTool.getJedisTool().getResource()) {
 			logger.info("守护任务: " + jedis.get(RedisConstant.SEMAPHORE_KEY));
 			if (RedisConstant.SEMAPHORE_KEY_RUN.equals(jedis.get(RedisConstant.SEMAPHORE_KEY))) {
@@ -56,32 +60,54 @@ public class StopCrawlerServiceJob{
 						}
 
 						mailTemplate.megerDataAndTemplate(gongYinFunds, null);
+						//删除分布式锁
+						jedis.del(RedisConstant.LOCK_KEY + nowDate);
 					} catch (Exception e) {
 						logger.error("监控任务发生异常： " , e);
 					}
 				}else{
 					//做即时统计
-					BigDecimal count = new BigDecimal((jedis.get( RedisConstant.COUNT_BASE_INFO) == null) ? "0" : jedis.get( RedisConstant.COUNT_BASE_INFO ) );
-					BigDecimal detailCount = new BigDecimal((jedis.get( RedisConstant.COUNT_DETAIL_INFO ) == null) ? "0" : jedis.get( RedisConstant.COUNT_DETAIL_INFO ) );
-					BigDecimal incrCount = new BigDecimal((jedis.get( RedisConstant.COUNT_INC_INFO ) == null) ? "0" : jedis.get( RedisConstant.COUNT_INC_INFO ) );
-					BigDecimal finalCount = new BigDecimal(jedis.llen( RedisConstant.FINAL_DATA_QUEUE + nowDate ));
-					DecimalFormat df = new DecimalFormat("#.00");
-					if(detailCount.intValue() != 0 && incrCount.intValue() == 0){
-						logger.info( "当前进度：" + df.format(detailCount.divide(count,2, BigDecimal.ROUND_HALF_UP).multiply( new BigDecimal("0.2")).multiply( new BigDecimal("100"))) + " %");
-					}
-
-					if(finalCount.intValue() > 1){
-						BigDecimal p = (finalCount.divide( count, 2, BigDecimal.ROUND_HALF_UP ).add( new BigDecimal( "0.30" ) )).multiply( new BigDecimal( "100" ) );
-						if(p.compareTo( new BigDecimal( "70" ) ) >0){
-							logger.info( "当前进度：" + df.format(finalCount.divide( count, 2, BigDecimal.ROUND_HALF_UP ).multiply( new BigDecimal( "100" ))) + " %");
-						}else{
-							logger.info( "当前进度：" + df.format(p)+ " %");
+					printCurrentDetail(nowDate, jedis);
+					//根据redis配置调整线程池大小
+					String ip = IPTool.getLocalIP();
+					String threadNum = jedis.get(ip + "_" + RedisConstant.MAX_THREAD_NUM);
+					//当前线程池最大大小不等于配置的大小则需要调整
+					if(startFundCrawlersMain.getPool() != null){
+						int currentSize = startFundCrawlersMain.getPool().getMaximumPoolSize();
+						if(Integer.valueOf(threadNum).compareTo(currentSize)!=0){
+							startFundCrawlersMain.getPool().setMaximumPoolSize(Integer.valueOf(threadNum));
+							logger.info("线程池最大大小从" + currentSize+ " 改为 " + threadNum);
 						}
-
 					}
+
 				}
 			}
 		}
+	}
+
+	/**
+	 * 在控制台显示当前进度
+	 * @param nowDate
+	 * @param jedis
+	 */
+	private void printCurrentDetail(String nowDate, Jedis jedis) {
+		BigDecimal count = new BigDecimal((jedis.get( RedisConstant.COUNT_BASE_INFO) == null) ? "0" : jedis.get( RedisConstant.COUNT_BASE_INFO ) );
+		BigDecimal detailCount = new BigDecimal((jedis.get( RedisConstant.COUNT_DETAIL_INFO ) == null) ? "0" : jedis.get( RedisConstant.COUNT_DETAIL_INFO ) );
+		BigDecimal incrCount = new BigDecimal((jedis.get( RedisConstant.COUNT_INC_INFO ) == null) ? "0" : jedis.get( RedisConstant.COUNT_INC_INFO ) );
+		BigDecimal finalCount = new BigDecimal(jedis.llen( RedisConstant.FINAL_DATA_QUEUE + nowDate ));
+		DecimalFormat df = new DecimalFormat("#.00");
+		if(detailCount.intValue() != 0 && incrCount.intValue() == 0){
+            logger.info( "当前进度：" + df.format(detailCount.divide(count,2, BigDecimal.ROUND_HALF_UP).multiply( new BigDecimal("0.2")).multiply( new BigDecimal("100"))) + " %");
+        }
+
+		if(finalCount.intValue() > 1){
+            BigDecimal p = (finalCount.divide( count, 2, BigDecimal.ROUND_HALF_UP ).add( new BigDecimal( "0.30" ) )).multiply( new BigDecimal( "100" ) );
+            if(p.compareTo( new BigDecimal( "70" ) ) >0){
+                logger.info( "当前进度：" + df.format(finalCount.divide( count, 2, BigDecimal.ROUND_HALF_UP ).multiply( new BigDecimal( "100" ))) + " %");
+            }else{
+                logger.info( "当前进度：" + df.format(p)+ " %");
+            }
+        }
 	}
 
 }

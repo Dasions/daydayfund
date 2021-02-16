@@ -118,7 +118,7 @@ public class FunDataOutFormat {
 		
 		printKeepIncrea(gongYinFunds, sortEnum, 30,
 				60, getMyFunds());
-		ExecutorServiceThreadPool.getExecutor().shutdown();
+
 	}
 
 	private static String[] getMyFunds() {

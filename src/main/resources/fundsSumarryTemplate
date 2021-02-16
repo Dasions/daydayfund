@@ -1,0 +1,16 @@
+<table class="row property-info" align="center"  cellspacing="0" border="0" cellpadding="0" style="text-align: center; width: 626px; table-layout: fixed;">
+           <thead>
+            <tr>
+             <th height="47" bgcolor="#fc4030" class="odd" style="color: #fff; font-weight: bold;"> $title_one</th>
+             <th height="47" bgcolor="#ef5d2a" class="even" style="color: #fff; font-weight: bold;"> $title_two </th>
+             <th height="47" bgcolor="#fc4030" class="odd" style="color: #fff; font-weight: bold;"> $title_three </th>
+            </tr>
+           </thead>
+           <tbody>
+            <tr>
+             <td height="47" bgcolor="#fdecc5" class="odd" style="color: #fc4030; font-weight: bold;">$value_one</td>
+             <td height="47" bgcolor="#fcf2d8" class="even" style="color: #fc4030; font-weight: bold;">$value_two</td>
+             <td height="47" bgcolor="#fdecc5" class="odd" style="color: #fc4030; font-weight: bold;">$value_three</td>
+            </tr>
+           </tbody>
+</table>
