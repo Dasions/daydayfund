@@ -10,6 +10,9 @@
 3.启动redis,将resources目录下的邮件模板代码放到redis中  
 4.启动爬虫程序，等待爬取任务结束，接收邮件(爬取时间跟网速带宽相关，一般10-15分钟左右，若有多个服务器，爬取速度更快)  
 
+效果图  
+http://assets.processon.com/chart_image/5aa21bd9e4b012d33734d80a.png
+
 #更新信息
 2020.02.06  
 1.解决多节点部署时误删已有队列数据的问题  
@@ -34,4 +37,4 @@
 
 
 #如果你想一键三连，可以通过以下方式  
-![http://assets.processon.com/chart_image/602b9bba07912934224ab163.png](http://assets.processon.com/chart_image/602b9bba07912934224ab163.png)
+http://assets.processon.com/chart_image/602b9bba07912934224ab163.png
