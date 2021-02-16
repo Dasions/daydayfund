@@ -34,4 +34,4 @@
 
 
 #如果你想一键三连，可以通过以下方式  
-![image](http://assets.processon.com/chart_image/602b9bba07912934224ab163.png)
+![http://assets.processon.com/chart_image/602b9bba07912934224ab163.png](http://assets.processon.com/chart_image/602b9bba07912934224ab163.png)
