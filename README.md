@@ -34,4 +34,4 @@
 
 
 #如果你想一键三连，可以通过以下方式  
-![https://github.com/Dasions/daydayfund/blob/master/web/pic/mypic.jpg](https://github.com/Dasions/daydayfund/blob/master/web/pic/mypic.jpg)
+![https://github.com/Dasions/daydayfund/blob/master/web/pic/mypic.PNG](https://github.com/Dasions/daydayfund/blob/master/web/pic/mypic.PNG)
