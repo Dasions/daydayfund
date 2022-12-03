@@ -10,6 +10,10 @@
 3.启动redis,将resources目录下的邮件模板代码放到redis中  
 4.启动爬虫程序，等待爬取任务结束，接收邮件(爬取时间跟网速带宽相关，一般10-15分钟左右，若有多个服务器，爬取速度更快)  
 
+#注意:
+1.application.properties中的senderMail和mailPwd分别是邮件发送人的邮箱和授权码，必须配置，否则收不到邮件(可以百度搜索:qq邮箱第三方登录授权码 进行操作)
+2.redis需要配置收件人邮箱和自选基金编码。 key为userAndFunds, 值为 [{"user":"收件人@qq.com","funds":["基金编码","160219","501005","000831","519606"]}]
+
 效果图  
 http://assets.processon.com/chart_image/5aa21bd9e4b012d33734d80a.png
 
@@ -36,5 +40,5 @@ http://assets.processon.com/chart_image/5aa21bd9e4b012d33734d80a.png
 5.新增errorDataQueue队列，存放爬取过程中发生异常的基金信息  
 
 
-#如果你想一键三连，可以通过以下方式  
-http://assets.processon.com/chart_image/602b9bba07912934224ab163.png
+
+#该项目仅限于编程技巧交流及知识分享，未经本人同意不得用于商业或者非法用途,否则,一切后果请用户自负。
